@@ -84,7 +84,7 @@
 
 (defn right [[x y]] [(inc x) y])
 
-(defn spiral-path []
+(defn spiral-path-moves []
   (let [square-sides (for [n (iterate inc 1)] (inc (* n 2)))
         steps-for-square (fn [sq] [right 
                                    (repeat (- sq 2) up) 
@@ -96,9 +96,15 @@
 (defn move [pos move-fn]
   (move-fn pos))
 
+(defn spiral-path []
+  (reductions move [0 0] (spiral-path-moves)))
+
 (defn day3-1 [end-square]
-  (let [path-fns (take (dec end-square) (spiral-path))
-        [end-x end-y] (reduce move [0 0] path-fns)]
+  (let [[end-x end-y] (nth (spiral-path) (dec end-square))]
     (println "day 3a " (+ (Math/abs end-x) (Math/abs end-y)))))
 
+(nth (spiral-path) 6)
+
 (day3-1 325489)
+
+(nth (reductions move [0 0] (spiral-path)) 2)
