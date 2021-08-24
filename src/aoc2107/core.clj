@@ -27,9 +27,9 @@
 
 (defn day1 []
   (let [numbers (get-input-numbers)]
-    (do (println "part 1 " 
+    (do (println "day 1a " 
                  (day1-1 numbers))
-        (println "part 2 "
+        (println "day 1b "
                  (day1-2 numbers)))))
 
 (day1)
@@ -135,3 +135,65 @@
     (println "day 3b " v)))
 
 (day3-2 day3-input)
+
+
+; day 4
+(defn words [line] (str/split line #" "))
+
+(defn get-day4-input [] (map words (str/split-lines (loader/load "day_04_input.txt"))))
+
+(defn unique-count [coll] (count (into #{} coll)))
+
+(defn valid-phrase? [phrase] (= (count phrase) (unique-count phrase)))
+
+(defn inc-or-one [n]
+  (if (nil? n) 
+    1
+    (inc n)))
+
+(defn counts [coll]
+  (reduce #(update-in %1 [%2] inc-or-one) {} coll))
+
+(defn has-anagram? [words]
+  (let [letter-counts (map counts words)
+        count-counts (counts letter-counts)]
+    (> (apply max (vals count-counts)) 1)))
+
+(defn day4[]
+  (let [valid-1 (filter valid-phrase? (get-day4-input))
+        valid-2 (filter (complement has-anagram?) valid-1 )]
+    (println "day 4a " (count valid-1))
+    (println "day 4b " (count valid-2))))
+
+(day4)
+
+
+; day 5 - part b is a bit slow, array might be a better choice than a map
+
+(def test-jumps [0 3 0 1 -3])
+
+(defn get-day5-input []
+  (map #(Integer/parseInt %) (str/split-lines (loader/load "day_05_input.txt"))))
+
+(defn jumps->map [jumps]
+  (zipmap (iterate inc 0) jumps))
+
+(defn jump-around 
+  ([jump-map inc-fn] (jump-around jump-map 0 0 inc-fn))
+  ([jump-map pos n inc-fn]
+   (if-let [distance (get jump-map pos)]
+     (recur(update-in jump-map [pos] inc-fn) (+ pos distance) (inc n) inc-fn)
+     n)))
+
+(defn crazy-inc [n]
+  (if (>= n 3)
+    (dec n)
+    (inc n)))
+
+(defn day5 []
+  (let [input-data (get-day5-input)
+        jump-map (jumps->map input-data)]
+    (println "day 5a " (jump-around jump-map inc))
+    (println "day 5b " (jump-around jump-map crazy-inc))))
+
+(day5)
