@@ -196,7 +196,7 @@
     (println "day 5a " (jump-around jump-map inc))
     (println "day 5b " (jump-around jump-map crazy-inc))))
 
-(day5)
+;(day5)
 
 
 ; day 6
@@ -253,30 +253,16 @@
        (map parse-day-7)
        (into {} (map #(vector (:name %) %)))
        (populate-with-parent)
-       (populate-total-weights)))
+       (populate-total-weights)
+))
 
 (defn find-leaves [node-map]
   (letfn [(leaf? [{c :children}] (nil? c))]
     (into #{} (map :name (filter leaf? (vals node-map))))))
 
-(defn make-parent-map [node-map]
-  (letfn [(child->parent [{:keys [name children]}] (zipmap children (repeat name)))]
-    (apply merge (map child->parent (vals node-map)))))
-
 (defn populate-with-parent [node-map]
   (letfn [(child->parent [{:keys [name children]}] (zipmap children (repeat {:parent name})))]
     (merge-with merge node-map (apply merge (map child->parent (vals node-map))))))
-
-(make-parent-map2 (day-7-data))
-
-
-(defn update-node [node-map name new-fields]
-  (merge-with merge node-map {name new-fields}))
-
-(defn populate-with-parent-x [node-map]
-  (let [parent-map (make-parent-map node-map)]
-    (reduce (fn [nm {name :name}] (update-node nm name {:parent (parent-map name)}))
-            node-map (vals node-map))))
 
 (defn find-root [node-map]
   (letfn [(no-parent? [{p :parent}] (nil? p))]
@@ -291,23 +277,22 @@
 
 (defn total-weight [node-map {:keys [name children weight]}]
   (if (nil? children)
-    {:total-weight weight :balanced true :child-weights nil}
+    {name {:total-weight weight :balanced true :child-weights nil}}
     (let [cw (remove nil? (map #(get-in node-map [% :total-weight]) children))
           balanced (apply = cw)]
-      {:total-weight (+ weight (apply + cw)) :balanced balanced :child-weights cw})))
+      {name {:total-weight (+ weight (apply + cw)) :balanced balanced :child-weights cw}})))
   
+
 (defn update-with-total-weights [node-map nodes]
-  (reduce 
-   (fn [nm node] (update-node nm (:name node) (total-weight nm node))) 
-   node-map 
-   nodes))
+  (let [new-fields (apply merge (map (partial total-weight node-map) nodes))]
+    (merge-with merge node-map new-fields)))
 
 (defn select-nodes [node-map names]
   (vals (select-keys node-map names)))
 
 (defn populate-total-weights [node-map]
   (reduce 
-   (fn [nm gen] (update-with-total-weights nm (select-nodes nm gen))) 
+   (fn [nm gen] (update-with-total-weights2 nm (select-nodes nm gen))) 
    node-map 
    (generations node-map)))
 
@@ -331,13 +316,17 @@
         wrong-weight (key (apply min-key val unbalanced-weights))
         right-weight (key (apply max-key val unbalanced-weights))
         weight-diff (- right-weight wrong-weight)
-        unbalancing-node (node-map (get (zipmap (:child-weights unbalanced) (:children unbalanced)) wrong-weight))]
+        unbalancing-node-map (zipmap (:child-weights unbalanced-node) (:children unbalanced-node))
+        unbalancing-node-name (unbalancing-node-map wrong-weight)
+        unbalancing-node (node-map unbalancing-node-name)]
     (+ (:weight unbalancing-node) weight-diff)))
 
 (defn day-7 []
   (let [node-map (day-7-data)]
     (println "day 7a root node is " (:name (find-root node-map)))
     (println "day 7b correct weight is " (find-correct-weight node-map))))
+
+(day-7-data)
 
 (day-7)
 
