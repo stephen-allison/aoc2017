@@ -295,7 +295,6 @@
    node-map 
    (generations node-map)))
 
-
 (defn balanced? [{balanced :balanced}] balanced)
 
 (defn lightest-node [nodes] (first (sort-by :total-weight nodes)))
