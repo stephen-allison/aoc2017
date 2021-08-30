@@ -282,7 +282,6 @@
           balanced (apply = cw)]
       {name {:total-weight (+ weight (apply + cw)) :balanced balanced :child-weights cw}})))
   
-
 (defn update-with-total-weights [node-map nodes]
   (let [new-fields (apply merge (map (partial total-weight node-map) nodes))]
     (merge-with merge node-map new-fields)))
@@ -311,7 +310,8 @@
         (recur remaining (inc-count counts value))))))
 
 (defn find-correct-weight [node-map]
-  (let [unbalanced-node (first (sort-by :total-weight (filter #(false? (:balanced %)) (vals node-map))))
+  (let [unbalanced-nodes (filter #(false? (:balanced %)) (vals node-map))
+        unbalanced-node (first (sort-by :total-weight unbalanced-nodes))
         unbalanced-weights (count-items (:child-weights unbalanced-node))
         wrong-weight (key (apply min-key val unbalanced-weights))
         right-weight (key (apply max-key val unbalanced-weights))
@@ -325,8 +325,6 @@
   (let [node-map (day-7-data)]
     (println "day 7a root node is " (:name (find-root node-map)))
     (println "day 7b correct weight is " (find-correct-weight node-map))))
-
-(day-7-data)
 
 (day-7)
 
