@@ -1,5 +1,6 @@
 (ns aoc2107.core)
 (require '[util.loader :as loader])
+(require '[util.counter :as counter])
 (require '[clojure.string :as str])
 
 (defn get-input [] (loader/load "day_01_input.txt"))
@@ -248,13 +249,12 @@
     {:name n :weight (Integer/parseInt w) :children c}))
 
 (defn day-7-data [] 
-  (->> (loader/load "day_07_small_input.txt")
+  (->> (loader/load "day_07_input.txt")
        (str/split-lines)
        (map parse-day-7)
        (into {} (map #(vector (:name %) %)))
        (populate-with-parent)
-       (populate-total-weights)
-))
+       (populate-total-weights)))
 
 (defn find-leaves [node-map]
   (letfn [(leaf? [{c :children}] (nil? c))]
@@ -295,31 +295,22 @@
    node-map 
    (generations node-map)))
 
-(defn inc-count [counts value]
-  (if (contains? counts value) 
-    (update counts value inc)
-    (assoc counts value 1)))
 
-(defn count-items [items-to-count]
-  (loop [items items-to-count
-         counts {}]
-    (let [value (first items)
-          remaining (rest items)]
-      (if (empty? remaining)
-        (inc-count counts value)
-        (recur remaining (inc-count counts value))))))
+(defn balanced? [{balanced :balanced}] balanced)
+
+(defn lightest-node [nodes] (first (sort-by :total-weight nodes)))
 
 (defn find-correct-weight [node-map]
-  (let [unbalanced-nodes (filter #(false? (:balanced %)) (vals node-map))
-        unbalanced-node (first (sort-by :total-weight unbalanced-nodes))
-        unbalanced-weights (count-items (:child-weights unbalanced-node))
-        wrong-weight (key (apply min-key val unbalanced-weights))
-        right-weight (key (apply max-key val unbalanced-weights))
-        weight-diff (- right-weight wrong-weight)
+  (let [unbalanced-nodes (remove balanced? (vals node-map))
+        unbalanced-node (lightest-node unbalanced-nodes)
+        unbalanced-weights (counter/count-items (:child-weights unbalanced-node))
+        wrong-weight (counter/least-frequent unbalanced-weights)
+        right-weight (counter/most-frequent unbalanced-weights)
+        weight-correction (- right-weight wrong-weight)
         unbalancing-node-map (zipmap (:child-weights unbalanced-node) (:children unbalanced-node))
         unbalancing-node-name (unbalancing-node-map wrong-weight)
         unbalancing-node (node-map unbalancing-node-name)]
-    (+ (:weight unbalancing-node) weight-diff)))
+    (+ (:weight unbalancing-node) weight-correction)))
 
 (defn day-7 []
   (let [node-map (day-7-data)]
