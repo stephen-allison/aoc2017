@@ -1,7 +1,7 @@
 (ns aoc2107.core)
 (require '[util.loader :as loader])
 (require '[clojure.string :as str])
-q
+
 (defn get-input [] (loader/load "day_01_input.txt"))
 
 ; day 1
@@ -235,8 +235,8 @@ q
             next-map (allocation->map final-alloc-1)
             update (fn [_ _] #{next-map})
             [n2 final-alloc-2] (reallocate-until-repeat next-map update)]
-        (println "day 6a " n1 final-alloc-1)
-        (println "day 6b " n2 final-alloc-2)))
+        (println "day 6a " n1)
+        (println "day 6b " n2)))
 
 (day6)
 
@@ -248,7 +248,7 @@ q
     {:name n :weight (Integer/parseInt w) :children c}))
 
 (defn day-7-data [] 
-  (->> (loader/load "day_07_input.txt")
+  (->> (loader/load "day_07_small_input.txt")
        (str/split-lines)
        (map parse-day-7)
        (into {} (map #(vector (:name %) %)))
@@ -263,17 +263,24 @@ q
   (letfn [(child->parent [{:keys [name children]}] (zipmap children (repeat name)))]
     (apply merge (map child->parent (vals node-map)))))
 
+(defn populate-with-parent [node-map]
+  (letfn [(child->parent [{:keys [name children]}] (zipmap children (repeat {:parent name})))]
+    (merge-with merge node-map (apply merge (map child->parent (vals node-map))))))
+
+(make-parent-map2 (day-7-data))
+
+
 (defn update-node [node-map name new-fields]
   (merge-with merge node-map {name new-fields}))
 
-(defn populate-with-parent [node-map]
+(defn populate-with-parent-x [node-map]
   (let [parent-map (make-parent-map node-map)]
     (reduce (fn [nm {name :name}] (update-node nm name {:parent (parent-map name)}))
             node-map (vals node-map))))
 
 (defn find-root [node-map]
   (letfn [(no-parent? [{p :parent}] (nil? p))]
-    (filter no-parent? (vals node-map))))
+    (first (filter no-parent? (vals node-map)))))
 
 (defn previous-generation [node-map names] 
   (into #{} (remove nil? (map #(get-in node-map [% :parent]) names))))
@@ -318,16 +325,21 @@ q
         (inc-count counts value)
         (recur remaining (inc-count counts value))))))
 
-(def day7 (day-7-data))
+(defn find-correct-weight [node-map]
+  (let [unbalanced-node (first (sort-by :total-weight (filter #(false? (:balanced %)) (vals node-map))))
+        unbalanced-weights (count-items (:child-weights unbalanced-node))
+        wrong-weight (key (apply min-key val unbalanced-weights))
+        right-weight (key (apply max-key val unbalanced-weights))
+        weight-diff (- right-weight wrong-weight)
+        unbalancing-node (node-map (get (zipmap (:child-weights unbalanced) (:children unbalanced)) wrong-weight))]
+    (+ (:weight unbalancing-node) weight-diff)))
 
-(def unbalanced (first (sort-by :total-weight (filter #(false? (:balanced %)) (vals day7)))))
-(def unbalancing-node 
-  (day7 (first (filter #(= unbalanced-weight (get-in day7 [% :total-weight])) (:children unbalanced)))))
-(def unbalanced-weights (count-items (:child-weights unbalanced)))
-(def unbalanced-weight (key (apply min-key val unbalanced-weights)))
-(def weight-diff  (- (key (apply max-key val unbalanced-weights))
-                     unbalanced-weight))
+(defn day-7 []
+  (let [node-map (day-7-data)]
+    (println "day 7a root node is " (:name (find-root node-map)))
+    (println "day 7b correct weight is " (find-correct-weight node-map))))
 
-(def final-w (+ (:weight unbalancing-node) weight-diff))
-final-w
+(day-7)
+
+
 
