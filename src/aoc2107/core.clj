@@ -9,6 +9,7 @@
 (require '[aoc2107.day5 :as day5])
 (require '[aoc2107.day6 :as day6])
 (require '[aoc2107.day7 :as day7])
+(require '[aoc2107.day8 :as day8])
 
 (day1/day1)
 (day2/day2-1)
@@ -18,3 +19,4 @@
 (day5/day5)
 (day6/day6)
 (day7/day7)
+(day8/day8)

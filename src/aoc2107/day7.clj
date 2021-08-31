@@ -74,5 +74,3 @@
   (let [node-map (day-7-data)]
     (println "day 7a root node is " (:name (find-root node-map)))
     (println "day 7b correct weight is " (find-correct-weight node-map))))
-
-
