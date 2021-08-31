@@ -29,4 +29,15 @@
       (update registers tgt #((operations tgt-op) % amt))
       registers)))
 
-(apply max (vals (reduce run-line {} (day8-data))))
+; not too happy with this - feels like there should be a better way
+(defn run-line-with-memory [[registers max-val] [tgt tgt-op amt check check-op val]]
+  (let [updated-registers (run-line registers [tgt tgt-op amt check check-op val])
+        new-max (max max-val (get updated-registers tgt 0))]
+    [updated-registers new-max]))
+
+(defn day8 []
+  (let [data (day8-data)]
+    (println "day 8a " (apply max (vals (reduce run-line {} data))))
+    (println "day 8b " (second (reduce run-line-with-memory [{} 0] data)))))
+
+(day8)
