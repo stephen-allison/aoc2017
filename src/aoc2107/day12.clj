@@ -3,32 +3,30 @@
 (require '[clojure.set :as set])
 (require '[clojure.string :as str])
 
-(defn new-graph [node-ids]
-  (reduce #(assoc %1 %2 #{}) {} node-ids))
 
-(defn add-connections [graph node-id connected-nodes]
-  (update graph node-id #(set/union % (set connected-nodes))))
+(defn add-connections 
+  ([graph [node-id & connected-nodes]] (add-connections graph node-id connected-nodes))
+  ([graph node-id connected-nodes] (assoc graph node-id (set connected-nodes))))
 
 (defn build-graph [node-connections]
-  (let [node-ids (map first node-connections)
-        graph (new-graph node-ids)]
-    (reduce (fn [g [id & neighbour-ids]] (add-connections g id neighbour-ids)) 
-            graph node-connections)))
+  (reduce #(add-connections %1 %2) {} node-connections))
 
 (defn remove-node [graph node-id] (dissoc graph node-id))
+
+(defn remove-nodes [graph node-ids] (reduce remove-node graph node-ids))
 
 (defn neighbours [graph node-id] (graph node-id))
 
 (defn traverse [graph start]
   (loop [nodes [start]
-         traversed []
+         visited []
          seen #{}]
     (if (empty? nodes)
-      traversed
+      visited
       (let [current-node (first nodes)
             next-nodes (remove #(contains? seen %) (neighbours graph current-node))]
         (recur (concat (rest nodes) next-nodes)
-               (conj traversed current-node)
+               (conj visited current-node)
                (set/union seen (set (conj next-nodes current-node))))))))
 
 (defn find-groups [graph start]
@@ -36,14 +34,11 @@
          s start
          groups []]
     (let [visited (traverse g s)
-          new-g (reduce #(remove-node %1 %2) g visited)
+          new-graph (remove-nodes g visited)
           new-groups (conj groups visited)]
-      (if (empty? new-g)
+      (if (empty? new-graph)
         new-groups
-        (recur
-         new-g
-         (key (first new-g))
-         new-groups)))))
+        (recur new-graph (ffirst new-graph) new-groups)))))
 
 (defn parse-line [line]
   (mapv #(Integer/parseInt %) (re-seq #"\d+" line)))
@@ -57,3 +52,5 @@
   (let [graph (build-graph (puzzle-input))]
     (println "day 12a " (count (traverse graph 0)))
     (println "day 12b " (count (find-groups graph 0)))))
+
+(day12)
