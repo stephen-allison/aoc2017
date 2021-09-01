@@ -1,27 +1,38 @@
 (ns aoc2107.day10)
+(require '[clojure.string :as str])
 
-(def input [88 88 211 106 141 1 78 254 2 111 77 255 90 0 54 205])
+(def puzzle-input "88,88,211,106,141,1,78,254,2,111,77,255,90,0,54,205")
+(def input-lengths (map #(Integer/parseInt %) (str/split puzzle-input #",")))
+(def part-2-addendum [17 31 73 47 23])
+(def part-2-lengths (concat (map byte puzzle-input) part-2-addendum))
 
-(def numbers (iterate inc 0))
+(def buffer-size 256)
+(def buffer-indices (range buffer-size))
+(def buffer (zipmap buffer-indices buffer-indices))
 
-(defn buffer [n] (zipmap (take n numbers) (take n numbers)))
-
-(defn select [start n size]
-  (take n (drop start (cycle (range size)))))
+(defn select [start length] (take length (drop start (cycle buffer-indices))))
 
 (defn step [[buf pos step] length]
-  (let [size (count buf)
-        keys (select pos length size)
+  (let [keys (select pos length)
         values (for [k keys] (buf k))
         change (zipmap keys (reverse values))]
-    [(merge buf change) (mod (+ pos length step) size) (inc step)]))
+    [(merge buf change) (mod (+ pos length step) buffer-size) (inc step)]))
+
+(defn knot-hash [data rounds] 
+  (let [final-buf (first (reduce step [buffer 0 0] (flatten (repeat rounds data))))]
+    (for [n buffer-indices] (final-buf n))))
+
+(defn day10i []
+  (let [final-hash (knot-hash input-lengths 1)]
+    (println "day 10a " (apply * (take 2 final-hash)))))
+
+(defn day10ii []
+  (let [hash-values (knot-hash part-2-lengths 64)
+        partitions (partition 16 hash-values)
+        xored (map #(apply bit-xor %) partitions)
+        hex (map #(format "%02X" %) xored)]
+    (println "day 10b "(str/lower-case (str/join hex)))))
 
 (defn day10 []
-  (let [buf (buffer 256)
-        final-buf (first (reduce step [buf 0 0] input))]
-    (println "day 10a " (* (final-buf 0) (final-buf 1)))))
-
-(day10)
-
-
-
+  (day10i)
+  (day10ii))
