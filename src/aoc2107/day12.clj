@@ -8,8 +8,7 @@
   ([graph [node-id & connected-nodes]] (add-connections graph node-id connected-nodes))
   ([graph node-id connected-nodes] (assoc graph node-id (set connected-nodes))))
 
-(defn build-graph [node-connections]
-  (reduce #(add-connections %1 %2) {} node-connections))
+(defn build-graph [node-connections] (reduce #(add-connections %1 %2) {} node-connections))
 
 (defn remove-node [graph node-id] (dissoc graph node-id))
 
@@ -17,15 +16,19 @@
 
 (defn neighbours [graph node-id] (graph node-id))
 
+(def head-and-rest (juxt first rest))
+
+(defn unseen-nodes [seen node-ids] (remove #(contains? seen %) node-ids))
+
 (defn traverse [graph start]
   (loop [nodes [start]
          visited []
          seen #{}]
     (if (empty? nodes)
       visited
-      (let [current-node (first nodes)
-            next-nodes (remove #(contains? seen %) (neighbours graph current-node))]
-        (recur (concat (rest nodes) next-nodes)
+      (let [[current-node remaining-nodes] (head-and-rest nodes)
+            next-nodes (unseen-nodes seen (neighbours graph current-node))]
+        (recur (concat remaining-nodes next-nodes)
                (conj visited current-node)
                (set/union seen (set (conj next-nodes current-node))))))))
 
@@ -53,4 +56,3 @@
     (println "day 12a " (count (traverse graph 0)))
     (println "day 12b " (count (find-groups graph 0)))))
 
-(day12)
