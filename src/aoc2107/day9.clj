@@ -11,7 +11,7 @@
 (defn skipped [state] (assoc state :skip false))
 (defn count-garbage [state] (update state :garbage-count inc))
 
-(def start-group (comp state-group inc-depth))
+(def start-group (comp state->group inc-depth))
 (def end-group (comp dec-depth score-group))
 
 (def handlers {
