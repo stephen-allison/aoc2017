@@ -9,13 +9,13 @@
 (defn add-connections [graph node-id connected-nodes]
   (update graph node-id #(set/union % (set connected-nodes))))
 
-(defn build-graph [nodes]
-  (let [node-ids (map first nodes)
+(defn build-graph [node-connections]
+  (let [node-ids (map first node-connections)
         graph (new-graph node-ids)]
-    (reduce (fn [g [id & neighbour-ids]] (add-connections g id neighbour-ids)) graph nodes)))
+    (reduce (fn [g [id & neighbour-ids]] (add-connections g id neighbour-ids)) 
+            graph node-connections)))
 
-(defn remove-node [graph node-id]
-  (dissoc graph node-id))
+(defn remove-node [graph node-id] (dissoc graph node-id))
 
 (defn neighbours [graph node-id] (graph node-id))
 
@@ -57,4 +57,3 @@
   (let [graph (build-graph (puzzle-input))]
     (println "day 12a " (count (traverse graph 0)))
     (println "day 12b " (count (find-groups graph 0)))))
-
