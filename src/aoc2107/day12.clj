@@ -17,6 +17,8 @@
 (defn remove-node [graph node-id]
   (dissoc graph node-id))
 
+(defn neighbours [graph node-id] (graph node-id))
+
 (defn traverse [graph start]
   (loop [nodes [start]
          traversed []
@@ -24,7 +26,7 @@
     (if (empty? nodes)
       traversed
       (let [current-node (first nodes)
-            next-nodes (remove #(contains? seen %) (graph current-node))]
+            next-nodes (remove #(contains? seen %) (neighbours graph current-node))]
         (recur (concat (rest nodes) next-nodes)
                (conj traversed current-node)
                (set/union seen (set (conj next-nodes current-node))))))))
