@@ -51,4 +51,7 @@
        (str/split-lines)
        (map parse-line)))
 
-
+(defn day12 []
+  (let [graph (build-graph (puzzle-input))]
+    (println "day 12a " (count (traverse graph 0)))
+    (println "day 12b " (count (find-groups graph 0)))))
