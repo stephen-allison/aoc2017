@@ -11,18 +11,22 @@
   (map #(format "%s-%s" base-input %) (range 128)))
 
 (defn hash-to-binary [input]
-  (let [bytes (concat (map byte input) part-2-addendum)
+  (let [bytes (concat (map byte input) day10/part-2-addendum)
         hash-values (day10/knot-hash bytes 64)
         partitions (partition 16 hash-values)
         xored (map #(apply bit-xor %) partitions)
         bin  (map (comp pad #(Integer/toBinaryString %)) xored)]
     (apply str bin)))
 
-(defn day14[]
+(defn part-1 []
   (->> (make-input "vbqugkhl")
        (map hash-to-binary)
        (flatten)
        (apply str)
-       (filter #(= 1 %))
+       (filter #(= \1 %))
        (count)))
+
+(defn day14 []
+  (println "day 14a " (part-1)))
+
 
