@@ -55,3 +55,29 @@
   (let [graph (build-graph (puzzle-input))]
     (println "day 12a " (count (traverse graph 0)))
     (println "day 12b " (count (find-groups graph 0)))))
+
+
+
+(def fizz-or-buzz-lookup 
+  {
+   [3] "fizz"
+   [5] "buzz"
+   [3 5] "fizzbuzz"
+   [3 4] "spoggle"
+   [7] "lucky"
+   [13] "unlucky for some"
+   [3 7] "keys to the house"
+   })
+
+(def numbers (iterate inc 1))
+
+(defn fizz-or-buzz [n]
+  (let [divisors (into (sorted-set) (apply concat (keys fizz-or-buzz-lookup)))
+        divs (filterv #(zero? (mod n %)) divisors)
+        vals (get fizz-or-buzz-lookup divs n)]
+    (println divs vals)
+    (str vals)))
+    
+(defn fizzbuzz [n] (take n (map fizz-or-buzz numbers)))
+
+(fizzbuzz 25)
